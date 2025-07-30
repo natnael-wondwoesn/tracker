@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED 1
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including those needed for PostgreSQL and Channels
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gcc libpq-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -21,11 +21,11 @@ RUN pip install --upgrade pip \
 # Copy project files
 COPY . .
 
-# Expose port (Django default)
+# Expose ports (HTTP and WebSocket for ASGI)
 EXPOSE 8000
 
 # Collect static files (optional, for production)
 # RUN python manage.py collectstatic --noinput
 
-# Default command (can be overridden)
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"] 
+# Default command for ASGI with Daphne (Channels)
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "tracker.asgi:application"]
